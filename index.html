@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Quantum Explorer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>🔬 Quantum Explorer (High School Edition)</h1>
+
+<!-- ENERGY LEVEL SECTION -->
+<section>
+  <h2>Energy Level Simulator</h2>
+  <input type="range" min="1" max="5" id="energySlider">
+  <p id="energyOutput">Energy level: n = 1</p>
+  <div id="colorBox"></div>
+</section>
+
+<!-- ORBITAL SECTION -->
+<section>
+  <h2>Orbital Viewer</h2>
+  <button onclick="showOrbital('s')">s orbital</button>
+  <button onclick="showOrbital('p')">p orbital</button>
+  <button onclick="showOrbital('d')">d orbital</button>
+
+  <canvas id="orbitalCanvas" width="300" height="300"></canvas>
+</section>
+
+<!-- QUIZ SECTION -->
+<section>
+  <h2>Quick Quiz</h2>
+  <p id="quizQuestion">Which orbital is spherical?</p>
+  <button onclick="checkAnswer('s')">s</button>
+  <button onclick="checkAnswer('p')">p</button>
+  <button onclick="checkAnswer('d')">d</button>
+  <p id="quizResult"></p>
+</section>
+
+<script src="script.js"></script>
+
+</body>
+</html>
