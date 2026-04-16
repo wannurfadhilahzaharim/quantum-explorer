@@ -12,34 +12,92 @@ slider.oninput = function() {
 };
 
 // ORBITAL DRAWING
-const canvas = document.getElementById("orbitalCanvas");
-const ctx = canvas.getContext("2d");
+// ===== THREE.JS SETUP =====
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(400, 400);
+document.getElementById("viewer").appendChild(renderer.domElement);
+
+camera.position.z = 5;
+
+let currentOrbital;
+
+// LIGHT
+const light = new THREE.PointLight(0xffffff, 1);
+light.position.set(5, 5, 5);
+scene.add(light);
+
+// ===== ORBITAL FUNCTION =====
 function showOrbital(type) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (currentOrbital) {
+    scene.remove(currentOrbital);
+  }
+
+  let material = new THREE.MeshStandardMaterial({
+    color: 0x0077ff,
+    transparent: true,
+    opacity: 0.7
+  });
 
   if (type === "s") {
-    ctx.beginPath();
-    ctx.arc(150, 150, 50, 0, 2 * Math.PI);
-    ctx.stroke();
+    const geometry = new THREE.SphereGeometry(1, 32, 32);
+    currentOrbital = new THREE.Mesh(geometry, material);
   }
 
   if (type === "p") {
-    ctx.beginPath();
-    ctx.arc(100, 150, 40, 0, 2 * Math.PI);
-    ctx.arc(200, 150, 40, 0, 2 * Math.PI);
-    ctx.stroke();
+    const group = new THREE.Group();
+
+    const geometry = new THREE.SphereGeometry(0.7, 32, 32);
+
+    const lobe1 = new THREE.Mesh(geometry, material);
+    lobe1.position.x = -1;
+
+    const lobe2 = new THREE.Mesh(geometry, material);
+    lobe2.position.x = 1;
+
+    group.add(lobe1);
+    group.add(lobe2);
+
+    currentOrbital = group;
   }
 
   if (type === "d") {
-    ctx.beginPath();
-    ctx.arc(100, 100, 30, 0, 2 * Math.PI);
-    ctx.arc(200, 100, 30, 0, 2 * Math.PI);
-    ctx.arc(100, 200, 30, 0, 2 * Math.PI);
-    ctx.arc(200, 200, 30, 0, 2 * Math.PI);
-    ctx.stroke();
+    const group = new THREE.Group();
+
+    const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+
+    const positions = [
+      [1, 1], [-1, 1], [1, -1], [-1, -1]
+    ];
+
+    positions.forEach(pos => {
+      const lobe = new THREE.Mesh(geometry, material);
+      lobe.position.set(pos[0], pos[1], 0);
+      group.add(lobe);
+    });
+
+    currentOrbital = group;
   }
+
+  scene.add(currentOrbital);
 }
+
+// ===== ANIMATION =====
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (currentOrbital) {
+    currentOrbital.rotation.y += 0.01;
+    currentOrbital.rotation.x += 0.005;
+  }
+
+  renderer.render(scene, camera);
+}
+
+animate();
 
 // QUIZ
 function checkAnswer(answer) {
