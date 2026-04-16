@@ -12,24 +12,7 @@ slider.oninput = function() {
 };
 
 // ORBITAL DRAWING
-// ===== THREE.JS SETUP =====
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(400, 400);
-document.getElementById("viewer").appendChild(renderer.domElement);
-
-camera.position.z = 5;
-
-let currentOrbital;
-
-// LIGHT
-const light = new THREE.PointLight(0xffffff, 1);
-light.position.set(5, 5, 5);
-scene.add(light);
-
-// ===== ORBITAL FUNCTION =====
 // ===== THREE.JS SETUP =====
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
@@ -114,20 +97,6 @@ function showOrbital(type) {
   currentOrbital = createOrbital(type);
   scene.add(currentOrbital);
 }
-
-// ===== ANIMATION =====
-function animate() {
-  requestAnimationFrame(animate);
-
-  if (currentOrbital) {
-    currentOrbital.rotation.y += 0.01;
-    currentOrbital.rotation.x += 0.005;
-  }
-
-  renderer.render(scene, camera);
-}
-
-animate();
 
 // ===== ANIMATION =====
 function animate() {
