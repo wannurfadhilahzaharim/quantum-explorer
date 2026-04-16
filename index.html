@@ -1,46 +1,195 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Quantum Explorer</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Quantum Orbital Explorer</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #viewer {
+      width: 420px;
+      height: 420px;
+      margin: 20px auto;
+      border: 1px solid #333;
+      background: white;
+    }
+
+    button {
+      margin: 5px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .panel {
+      background: white;
+      padding: 15px;
+      margin: 15px auto;
+      width: 500px;
+      border-radius: 10px;
+    }
+  </style>
 </head>
+
 <body>
 
-<h1>Quantum Explorer</h1>
+<h1>🔬 Quantum Orbital Explorer</h1>
 
-<!-- ENERGY LEVEL SECTION -->
-<section>
-  <h2>Energy Level Simulator</h2>
-  <input type="range" min="1" max="5" id="energySlider">
-  <p id="energyOutput">Energy level: n = 1</p>
-  <div id="colorBox"></div>
-</section>
-
-<!-- ORBITAL SECTION -->
-<section>
-  <h2>3D Orbital Viewer</h2>
+<div class="panel">
   <button onclick="showOrbital('s')">s orbital</button>
   <button onclick="showOrbital('p')">p orbital</button>
   <button onclick="showOrbital('d')">d orbital</button>
+</div>
 
-  <div id="viewer" style="width:400px; height:400px; margin:auto;"></div>
-</section>
+<div id="viewer"></div>
 
-<!-- Three.js CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="script.js"></script>
 
-<!-- QUIZ SECTION -->
-<section>
-  <h2>Quick Quiz</h2>
-  <p id="quizQuestion">Which orbital is spherical?</p>
-  <button onclick="checkAnswer('s')">s</button>
-  <button onclick="checkAnswer('p')">p</button>
-  <button onclick="checkAnswer('d')">d</button>
-  <p id="quizResult"></p>
-</section>
+<script>
+// ============================
+// THREE.JS SETUP
+// ============================
+const scene = new THREE.Scene();
 
-<script src="script.js"></script>
+const camera = new THREE.PerspectiveCamera(
+  75,
+  1,
+  0.1,
+  1000
+);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(420, 420);
+
+document.getElementById("viewer").appendChild(renderer.domElement);
+
+camera.position.z = 4;
+
+// ============================
+// LIGHTING
+// ============================
+const light = new THREE.PointLight(0xffffff, 1);
+light.position.set(5, 5, 5);
+scene.add(light);
+
+scene.add(new THREE.AmbientLight(0x404040));
+
+// ============================
+// GLOBAL OBJECT
+// ============================
+let currentOrbital = null;
+
+// ============================
+// ORBITAL GENERATOR
+// ============================
+function createOrbital(type) {
+
+  const geometry = new THREE.SphereGeometry(1, 80, 80);
+  const pos = geometry.attributes.position;
+
+  const colors = new Float32Array(pos.count * 3);
+  let c = 0;
+
+  for (let i = 0; i < pos.count; i++) {
+
+    let x = pos.getX(i);
+    let y = pos.getY(i);
+    let z = pos.getZ(i);
+
+    let r = Math.sqrt(x*x + y*y + z*z);
+    let theta = Math.acos(z / r);
+    let phi = Math.atan2(y, x);
+
+    let value = 1;
+
+    // ============================
+    // SIMPLE WAVEFUNCTION MODELS
+    // ============================
+    if (type === "s") {
+      value = 1;
+    }
+
+    if (type === "p") {
+      value = Math.cos(theta); // pz-like
+    }
+
+    if (type === "d") {
+      value = Math.sin(theta) * Math.cos(phi) * Math.sin(phi);
+    }
+
+    let scale = 1 + 1.2 * value;
+
+    pos.setXYZ(i, x * scale, y * scale, z * scale);
+
+    // COLOR (phase)
+    if (value >= 0) {
+      colors[c++] = 1;
+      colors[c++] = 0;
+      colors[c++] = 0;
+    } else {
+      colors[c++] = 0;
+      colors[c++] = 0;
+      colors[c++] = 1;
+    }
+  }
+
+  pos.needsUpdate = true;
+
+  geometry.setAttribute(
+    "color",
+    new THREE.BufferAttribute(colors, 3)
+  );
+
+  const material = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    side: THREE.DoubleSide
+  });
+
+  return new THREE.Mesh(geometry, material);
+}
+
+// ============================
+// SWITCH ORBITALS
+// ============================
+function showOrbital(type) {
+
+  if (currentOrbital) {
+    scene.remove(currentOrbital);
+  }
+
+  currentOrbital = createOrbital(type);
+  scene.add(currentOrbital);
+}
+
+// ============================
+// ANIMATION LOOP
+// ============================
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (currentOrbital) {
+    currentOrbital.rotation.y += 0.01;
+    currentOrbital.rotation.x += 0.005;
+  }
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// default view
+showOrbital("s");
+</script>
 
 </body>
 </html>
