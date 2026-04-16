@@ -30,60 +30,104 @@ light.position.set(5, 5, 5);
 scene.add(light);
 
 // ===== ORBITAL FUNCTION =====
-function showOrbital(type) {
+// ===== THREE.JS SETUP =====
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(400, 400);
+document.getElementById("viewer").appendChild(renderer.domElement);
+
+camera.position.z = 4;
+
+// LIGHT
+const light = new THREE.PointLight(0xffffff, 1);
+light.position.set(5, 5, 5);
+scene.add(light);
+
+const ambient = new THREE.AmbientLight(0x404040);
+scene.add(ambient);
+
+let currentOrbital;
+
+// ===== FUNCTION TO GENERATE ORBITAL SURFACE =====
+function createOrbital(type) {
+  const geometry = new THREE.SphereGeometry(1, 100, 100);
+
+  const positions = geometry.attributes.position;
+  const colors = [];
+
+  for (let i = 0; i < positions.count; i++) {
+    let x = positions.getX(i);
+    let y = positions.getY(i);
+    let z = positions.getZ(i);
+
+    let r = Math.sqrt(x*x + y*y + z*z);
+    let theta = Math.acos(z / r);      // polar
+    let phi = Math.atan2(y, x);        // azimuth
+
+    let value = 1;
+
+    // === Angular parts (simplified spherical harmonics) ===
+    if (type === "s") {
+      value = 1;
+    }
+
+    if (type === "p") {
+      value = Math.cos(theta); // p_z
+    }
+
+    if (type === "d") {
+      value = Math.sin(theta) * Math.cos(phi) * Math.sin(phi); // d_xy-like
+    }
+
+    // Deform radius
+    let scale = 1 + 1.5 * value;
+    positions.setXYZ(i, x * scale, y * scale, z * scale);
+
+    // Color (phase)
+    if (value > 0) {
+      colors.push(1, 0, 0); // red
+    } else {
+      colors.push(0, 0, 1); // blue
+    }
+  }
+
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+
+  const material = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.8
+  });
+
+  return new THREE.Mesh(geometry, material);
+}
+
+// ===== SWITCH ORBITALS =====
+function showOrbital(type) {
   if (currentOrbital) {
     scene.remove(currentOrbital);
   }
 
-  let material = new THREE.MeshStandardMaterial({
-    color: 0x0077ff,
-    transparent: true,
-    opacity: 0.7
-  });
-
-  if (type === "s") {
-    const geometry = new THREE.SphereGeometry(1, 32, 32);
-    currentOrbital = new THREE.Mesh(geometry, material);
-  }
-
-  if (type === "p") {
-    const group = new THREE.Group();
-
-    const geometry = new THREE.SphereGeometry(0.7, 32, 32);
-
-    const lobe1 = new THREE.Mesh(geometry, material);
-    lobe1.position.x = -1;
-
-    const lobe2 = new THREE.Mesh(geometry, material);
-    lobe2.position.x = 1;
-
-    group.add(lobe1);
-    group.add(lobe2);
-
-    currentOrbital = group;
-  }
-
-  if (type === "d") {
-    const group = new THREE.Group();
-
-    const geometry = new THREE.SphereGeometry(0.5, 32, 32);
-
-    const positions = [
-      [1, 1], [-1, 1], [1, -1], [-1, -1]
-    ];
-
-    positions.forEach(pos => {
-      const lobe = new THREE.Mesh(geometry, material);
-      lobe.position.set(pos[0], pos[1], 0);
-      group.add(lobe);
-    });
-
-    currentOrbital = group;
-  }
-
+  currentOrbital = createOrbital(type);
   scene.add(currentOrbital);
 }
+
+// ===== ANIMATION =====
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (currentOrbital) {
+    currentOrbital.rotation.y += 0.01;
+    currentOrbital.rotation.x += 0.005;
+  }
+
+  renderer.render(scene, camera);
+}
+
+animate();
 
 // ===== ANIMATION =====
 function animate() {
