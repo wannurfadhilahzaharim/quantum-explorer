@@ -18,13 +18,17 @@
 
 <!-- ORBITAL SECTION -->
 <section>
-  <h2>Orbital Viewer</h2>
+  <h2>3D Orbital Viewer</h2>
   <button onclick="showOrbital('s')">s orbital</button>
   <button onclick="showOrbital('p')">p orbital</button>
   <button onclick="showOrbital('d')">d orbital</button>
 
-  <canvas id="orbitalCanvas" width="300" height="300"></canvas>
+  <div id="viewer" style="width:400px; height:400px; margin:auto;"></div>
 </section>
+
+<!-- Three.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="script.js"></script>
 
 <!-- QUIZ SECTION -->
 <section>
